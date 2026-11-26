@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>স্বপ্নকুটির অ্যাকাউন্টস</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--tx:#1f2a24;--mu:#6b756e;--ac:#1d6b4f;--ac2:#e8f3ee;--bd:#e0ddd4;--er:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141815;--card:#1d231f;--tx:#e8ece9;--mu:#9aa59e;--ac:#5cc79a;--ac2:#22332a;--bd:#2f3832;--er:#f2918b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141815;--card:#1d231f;--tx:#e8ece9;--mu:#9aa59e;--ac:#5cc79a;--ac2:#22332a;--bd:#2f3832;--er:#f2918b;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif}
+header{padding:14px 16px 6px}h1{font-size:20px;margin:0}header p{margin:0;color:var(--mu);font-size:13px}
+nav{display:flex;gap:6px;overflow-x:auto;padding:8px 16px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+nav button{white-space:nowrap;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 13px;border-radius:20px;font:inherit;cursor:pointer}
+nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+main{padding:8px 16px 40px;max-width:980px;margin:auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--ac2);border-radius:10px;padding:10px}.stat b{display:block;font-size:18px}.stat span{color:var(--mu);font-size:12px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end}
+label{font-size:12px;color:var(--mu);display:block}
+input,select{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer}
+.btn.s{padding:4px 10px;font-size:13px}.btn.g{background:var(--ac2);color:var(--ac)}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}th{color:var(--mu);font-weight:500}
+td.n,th.n{text-align:right}.mu{color:var(--mu);font-size:13px}.er{color:var(--er)}
+.note{background:var(--ac2);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<header><h1>🏠 স্বপ্নকুটির অ্যাকাউন্টস</h1><p>শেয়ার-ভিত্তিক রিয়েল এস্টেট · ডাবল-এন্ট্রি · ভ্যাট · রিপোর্ট</p></header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<script>
+const ACC={cash:['ব্যাংক/নগদ','A'],rec:['গ্রাহক প্রাপ্য','A'],land:['জমি ইনভেন্টরি','A'],wip:['নির্মাণ WIP','A'],adv:['গ্রাহক অগ্রিম (দায়)','L'],pay:['প্রদেয় / ঠিকাদার','L'],vat:['ভ্যাট প্রদেয়','L'],rev:['রেভিনিউ – শেয়ার বিক্রি','I'],cogs:['বিক্রীত ইউনিটের খরচ','E']};
+const TABS=[['dash','ড্যাশবোর্ড'],['proj','প্রকল্প ও ইউনিট'],['cust','গ্রাহক'],['book','বুকিং ও কিস্তি'],['cost','খরচ'],['led','জার্নাল'],['rep','রিপোর্ট'],['set','সেটিংস']];
+let S={projects:[],units:[],customers:[],bookings:[],ledger:[],vat:{low:2,high:4.5,limit:1600},seq:1};
+let tab='dash';
+try{const r=localStorage.getItem('swk_v1');if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem('swk_v1',JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const v=id=>$(id)?$(id).value:'';
+const num=id=>parseFloat(v(id))||0;
+const fmt=n=>Number(n||0).toLocaleString('bn-BD',{maximumFractionDigits:2});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const nid=()=>S.seq++;
+const find=(a,id)=>S[a].find(x=>x.id==id);
+const opts=(a,f)=>S[a].map(x=>`<option value="${x.id}">${esc(f(x))}</option>`).join('');
+const unitName=u=>{const p=find('projects',u.pid);return (p?p.name:'?')+' – '+u.name};
+const vatRate=u=>u.size>S.vat.limit?S.vat.high:S.vat.low;
+const bal=(acc,pid)=>S.ledger.reduce((t,e)=>t+e.lines.filter(l=>l.acc==acc&&(pid==null||e.pid==pid)).reduce((s,l)=>s+l.dr-l.cr,0),0);
+const advOf=b=>-S.ledger.filter(e=>e.bid==b.id).reduce((t,e)=>t+e.lines.filter(l=>l.acc=='adv').reduce((s,l)=>s+l.dr-l.cr,0),0);
+const paidOf=b=>S.ledger.filter(e=>e.bid==b.id&&e.kind=='receipt').reduce((t,e)=>t+e.lines[0].dr,0);
+const sharesSold=uid=>S.bookings.filter(b=>b.uid==uid).reduce((t,b)=>t+b.shares,0);
+function post(date,desc,pid,bid,kind,lines){
+  const dr=lines.reduce((t,l)=>t+(l[1]||0),0),cr=lines.reduce((t,l)=>t+(l[2]||0),0);
+  if(Math.abs(dr-cr)>0.01){alert('ডেবিট ও ক্রেডিট মিলছে না');return}
+  S.ledger.push({id:nid(),date,desc,pid,bid,kind,lines:lines.map(l=>({acc:l[0],dr:l[1]||0,cr:l[2]||0}))});
+}
+function go(t){tab=t;render()}
+function render(){
+  $('nav').innerHTML=TABS.map(t=>`<button class="${t[0]==tab?'on':''}" onclick="go('${t[0]}')">${t[1]}</button>`).join('');
+  $('app').innerHTML=({dash,proj,cust,book,cost,led,rep,set})[tab]();
+  save();
+}
+/* ---- Dashboard ---- */
+function dash(){
+  const rev=-bal('rev'),adv=-bal('adv'),cash=bal('cash'),vat=-bal('vat');
+  return `<div class="grid">
+  <div class="stat"><b>${fmt(S.projects.length)}</b><span>প্রকল্প</span></div>
+  <div class="stat"><b>${fmt(S.bookings.length)}</b><span>বুকিং</span></div>
+  <div class="stat"><b>৳${fmt(adv)}</b><span>গ্রাহক অগ্রিম (দায়)</span></div>
+  <div class="stat"><b>৳${fmt(rev)}</b><span>স্বীকৃত রেভিনিউ</span></div>
+  <div class="stat"><b>৳${fmt(vat)}</b><span>ভ্যাট প্রদেয়</span></div>
+  <div class="stat"><b>৳${fmt(cash)}</b><span>ব্যাংক/নগদ</span></div></div>
+  <div class="card" style="margin-top:14px"><h2>শুরু করবেন যেভাবে</h2>
+  <ol class="mu"><li>“প্রকল্প ও ইউনিট”-এ প্রকল্প ও ইউনিট (মোট শেয়ার, শেয়ার মূল্য) যোগ করুন</li><li>“গ্রাহক” ট্যাবে গ্রাহক যোগ করুন</li><li>“বুকিং ও কিস্তি”-এ শেয়ার বুক করে অগ্রিম/কিস্তি গ্রহণ করুন</li><li>“খরচ”-এ জমি ও নির্মাণ খরচ দিন</li><li>শেয়ার রেজিস্ট্রেশন হলে “হস্তান্তর” চাপুন — রেভিনিউ, ভ্যাট ও খরচ স্বয়ংক্রিয় এন্ট্রি হবে</li></ol>
+  <div class="note">ডেটা শুধু এই ব্রাউজারে সংরক্ষিত হয়। নিয়মিত “সেটিংস” থেকে ব্যাকআপ নিন।</div></div>`;
+}
+/* ---- Projects ---- */
+function addProj(){if(!v('pn').trim())return;S.projects.push({id:nid(),name:v('pn').trim(),addr:v('pa'),budget:num('pb')});render()}
+function addUnit(){if(!v('up')||!v('un').trim()||num('us')<=0||num('ut')<=0)return alert('সব তথ্য দিন');S.units.push({id:nid(),pid:+v('up'),name:v('un').trim(),size:num('us'),total:num('ut'),sv:num('uv')});render()}
+function proj(){
+  return `<div class="card"><h2>নতুন প্রকল্প</h2><div class="row"><div><label>নাম</label><input id="pn" placeholder="Swapnokuthir – Ashulia"></div><div><label>ঠিকানা</label><input id="pa"></div><div><label>বাজেট (৳)</label><input id="pb" type="number"></div><button class="btn" onclick="addProj()">যোগ করুন</button></div></div>
+  <div class="card"><h2>নতুন ইউনিট</h2><div class="row"><div><label>প্রকল্প</label><select id="up">${opts('projects',p=>p.name)}</select></div><div><label>ইউনিট/ফ্লোর</label><input id="un" placeholder="৫ম তলা, A"></div><div><label>আকার (বর্গফুট)</label><input id="us" type="number"></div><div><label>মোট শেয়ার</label><input id="ut" type="number" value="100"></div><div><label>প্রতি শেয়ার মূল্য (৳)</label><input id="uv" type="number"></div><button class="btn" onclick="addUnit()">যোগ করুন</button></div></div>
+  <div class="card tw"><h2>ইউনিট তালিকা</h2><table><tr><th>ইউনিট</th><th class="n">বর্গফুট</th><th class="n">মোট শেয়ার</th><th class="n">বুকড</th><th class="n">শেয়ার মূল্য</th><th class="n">ভ্যাট হার</th></tr>
+  ${S.units.map(u=>`<tr><td>${esc(unitName(u))}</td><td class="n">${fmt(u.size)}</td><td class="n">${fmt(u.total)}</td><td class="n">${fmt(sharesSold(u.id))}</td><td class="n">${fmt(u.sv)}</td><td class="n">${fmt(vatRate(u))}%</td></tr>`).join('')||'<tr><td class="mu">কোনো ইউনিট নেই</td></tr>'}</table></div>`;
+}
+/* ---- Customers ---- */
+function addCust(){if(!v('cn').trim())return;S.customers.push({id:nid(),name:v('cn').trim(),nid:v('ci'),phone:v('cp')});render()}
+function cust(){
+  return `<div class="card"><h2>নতুন গ্রাহক</h2><div class="row"><div><label>নাম</label><input id="cn"></div><div><label>NID</label><input id="ci"></div><div><label>মোবাইল</label><input id="cp"></div><button class="btn" onclick="addCust()">যোগ করুন</button></div></div>
+  <div class="card tw"><table><tr><th>নাম</th><th>NID</th><th>মোবাইল</th></tr>${S.customers.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.nid)}</td><td>${esc(c.phone)}</td></tr>`).join('')||'<tr><td class="mu">কোনো গ্রাহক নেই</td></tr>'}</table></div>`;
+}
+/* ---- Bookings ---- */
+function addBook(){
+  const u=find('units',v('bu')),sh=num('bs');if(!u||!v('bc')||sh<=0)return alert('তথ্য দিন');
+  if(sh>u.total-sharesSold(u.id))return alert('এত শেয়ার বাকি নেই');
+  const b={id:nid(),cid:+v('bc'),uid:u.id,shares:sh,date:v('bd')||today(),status:'বুকড'};S.bookings.push(b);
+  if(num('ba')>0)receipt(b,num('ba'),b.date,'বুকিং মানি');render();
+}
+function receipt(b,amt,date,d){const u=find('units',b.uid);post(date,d+' – '+find('customers',b.cid).name,u.pid,b.id,'receipt',[['cash',amt,0],['adv',0,amt]])}
+function payBook(){const b=find('bookings',v('pb2'));if(!b||num('pm')<=0)return;receipt(b,num('pm'),v('pd')||today(),'কিস্তি গ্রহণ');render()}
+function handover(id){
+  const b=find('bookings',id),u=find('units',b.uid),c=find('customers',b.cid);
+  const rev=b.shares*u.sv,rate=vatRate(u),vat=Math.round(rev*rate)/100,adv=advOf(b);
+  if(!confirm(`রেভিনিউ ৳${fmt(rev)} + ভ্যাট ${fmt(rate)}% (৳${fmt(vat)}) স্বীকৃত হবে। হস্তান্তর করবেন?`))return;
+  const tot=rev+vat,fromAdv=Math.min(adv,tot),rec=tot-fromAdv;
+  const lines=[['adv',fromAdv,0]];if(rec>0)lines.push(['rec',rec,0]);
+  lines.push(['rev',0,rev],['vat',0,vat]);
+  post(today(),'হস্তান্তর ও রেভিনিউ স্বীকৃতি – '+c.name,u.pid,b.id,'handover',lines);
+  const pu=S.units.filter(x=>x.pid==u.pid),projTotal=pu.reduce((t,x)=>t+x.total,0);
+  const done=S.bookings.filter(x=>x.status=='হস্তান্তরিত'&&find('units',x.uid).pid==u.pid).reduce((t,x)=>t+x.shares,0);
+  const inv=bal('land',u.pid)+bal('wip',u.pid),cost=Math.round(inv*b.shares/Math.max(projTotal-done,b.shares)*100)/100;
+  if(cost>0){const l=bal('land',u.pid),w=bal('wip',u.pid),tl=l+w?cost*l/(l+w):0,tw=cost-tl;
+    post(today(),'বিক্রীত শেয়ারের খরচ – '+c.name,u.pid,b.id,'cogs',[['cogs',cost,0],['land',0,tl],['wip',0,tw]])}
+  b.status='হস্তান্তরিত';render();
+}
+function book(){
+  return `<div class="card"><h2>নতুন বুকিং</h2><div class="row"><div><label>গ্রাহক</label><select id="bc">${opts('customers',c=>c.name)}</select></div><div><label>ইউনিট</label><select id="bu">${opts('units',u=>unitName(u)+' (বাকি '+(u.total-sharesSold(u.id))+')')}</select></div><div><label>শেয়ার সংখ্যা</label><input id="bs" type="number" value="1"></div><div><label>বুকিং মানি (৳)</label><input id="ba" type="number"></div><div><label>তারিখ</label><input id="bd" type="date" value="${today()}"></div><button class="btn" onclick="addBook()">বুক করুন</button></div></div>
+  <div class="card"><h2>কিস্তি গ্রহণ</h2><div class="row"><div><label>বুকিং</label><select id="pb2">${opts('bookings',b=>find('customers',b.cid).name+' · '+unitName(find('units',b.uid)))}</select></div><div><label>পরিমাণ (৳)</label><input id="pm" type="number"></div><div><label>তারিখ</label><input id="pd" type="date" value="${today()}"></div><button class="btn" onclick="payBook()">গ্রহণ</button></div></div>
+  <div class="card tw"><h2>বুকিং তালিকা</h2><table><tr><th>গ্রাহক</th><th>ইউনিট</th><th class="n">শেয়ার</th><th class="n">মোট মূল্য</th><th class="n">পরিশোধিত</th><th class="n">বাকি</th><th>অবস্থা</th><th></th></tr>
+  ${S.bookings.map(b=>{const u=find('units',b.uid),val=b.shares*u.sv,vt=val*vatRate(u)/100,paid=paidOf(b);return `<tr><td>${esc(find('customers',b.cid).name)}</td><td>${esc(unitName(u))}</td><td class="n">${fmt(b.shares)}</td><td class="n">${fmt(val)}</td><td class="n">${fmt(paid)}</td><td class="n ${paid<val+vt?'er':''}">${fmt(Math.max(val+vt-paid,0))}</td><td>${b.status}</td><td>${b.status=='বুকড'?`<button class="btn s g" onclick="handover(${b.id})">হস্তান্তর</button>`:''}</td></tr>`}).join('')||'<tr><td class="mu">কোনো বুকিং নেই</td></tr>'}</table>
+  <div class="note">“বাকি” = শেয়ার মূল্য + প্রযোজ্য ভ্যাট − পরিশোধিত।</div></div>`;
+}
+/* ---- Costs ---- */
+function addCost(){if(!v('xp')||num('xa')<=0)return alert('প্রকল্প ও পরিমাণ দিন');
+  post(v('xd')||today(),v('xn')||(v('xt')=='land'?'জমি ক্রয়':'নির্মাণ খরচ'),+v('xp'),null,'cost',[[v('xt'),num('xa'),0],[v('xc'),0,num('xa')]]);render()}
+function cost(){
+  const rows=S.ledger.filter(e=>e.kind=='cost');
+  return `<div class="card"><h2>খরচ এন্ট্রি</h2><div class="row"><div><label>প্রকল্প</label><select id="xp">${opts('projects',p=>p.name)}</select></div><div><label>ধরন</label><select id="xt"><option value="land">জমি ক্রয়</option><option value="wip">নির্মাণ খরচ (WIP)</option></select></div><div><label>পরিশোধ</label><select id="xc"><option value="cash">ব্যাংক/নগদ</option><option value="pay">বাকি (প্রদেয়)</option></select></div><div><label>পরিমাণ (৳)</label><input id="xa" type="number"></div><div><label>বিবরণ</label><input id="xn"></div><div><label>তারিখ</label><input id="xd" type="date" value="${today()}"></div><button class="btn" onclick="addCost()">যোগ করুন</button></div>
+  <div class="note">ট্রাঙ্কেটেড ভ্যাটে ইনপুট রিবেট নেই, তাই খরচে ভ্যাট দাবির অপশন রাখা হয়নি।</div></div>
+  <div class="card tw"><table><tr><th>তারিখ</th><th>প্রকল্প</th><th>বিবরণ</th><th class="n">পরিমাণ</th></tr>${rows.map(e=>`<tr><td>${e.date}</td><td>${esc(find('projects',e.pid)?.name)}</td><td>${esc(e.desc)}</td><td class="n">${fmt(e.lines[0].dr)}</td></tr>`).join('')||'<tr><td class="mu">কোনো খরচ নেই</td></tr>'}</table></div>`;
+}
+/* ---- Ledger ---- */
+function led(){
+  return `<div class="card tw"><h2>সাধারণ খাতা (জার্নাল)</h2><table><tr><th>তারিখ</th><th>বিবরণ</th><th>হিসাব</th><th class="n">ডেবিট</th><th class="n">ক্রেডিট</th></tr>
+  ${S.ledger.slice().reverse().map(e=>e.lines.map((l,i)=>`<tr><td>${i?'':e.date}</td><td>${i?'':esc(e.desc)}</td><td>${l.cr?'&nbsp;&nbsp;&nbsp;↳ ':''}${ACC[l.acc][0]}</td><td class="n">${l.dr?fmt(l.dr):''}</td><td class="n">${l.cr?fmt(l.cr):''}</td></tr>`).join('')).join('')||'<tr><td class="mu">কোনো এন্ট্রি নেই</td></tr>'}</table></div>`;
+}
+/* ---- Reports ---- */
+function rep(){
+  let td=0,tc=0;
+  const tb=Object.keys(ACC).map(k=>{const b=bal(k),d=b>0?b:0,c=b<0?-b:0;td+=d;tc+=c;return `<tr><td>${ACC[k][0]}</td><td class="n">${d?fmt(d):''}</td><td class="n">${c?fmt(c):''}</td></tr>`}).join('');
+  const pp=S.projects.map(p=>{const r=-bal('rev',p.id),c=bal('cogs',p.id),inv=bal('land',p.id)+bal('wip',p.id);return `<tr><td>${esc(p.name)}</td><td class="n">${fmt(r)}</td><td class="n">${fmt(c)}</td><td class="n">${fmt(r-c)}</td><td class="n">${fmt(inv)}</td><td class="n">${fmt(p.budget)}</td></tr>`}).join('');
+  const vt=S.bookings.filter(b=>b.status=='হস্তান্তরিত').map(b=>{const u=find('units',b.uid),rev=b.shares*u.sv;return `<tr><td>${esc(find('customers',b.cid).name)}</td><td class="n">${fmt(u.size)}</td><td class="n">${fmt(rev)}</td><td class="n">${fmt(vatRate(u))}%</td><td class="n">${fmt(rev*vatRate(u)/100)}</td></tr>`}).join('');
+  const sh=S.units.map(u=>`<tr><td colspan="4" style="font-weight:600">${esc(unitName(u))}</td></tr>`+S.bookings.filter(b=>b.uid==u.id).map(b=>`<tr><td>&nbsp;&nbsp;${esc(find('customers',b.cid).name)}</td><td class="n">${fmt(b.shares)}</td><td class="n">${fmt(b.shares/u.total*100)}%</td><td>${b.status}</td></tr>`).join('')).join('');
+  return `<div class="card tw"><h2>ট্রায়াল ব্যালেন্স</h2><table><tr><th>হিসাব</th><th class="n">ডেবিট</th><th class="n">ক্রেডিট</th></tr>${tb}<tr><th>মোট</th><th class="n">${fmt(td)}</th><th class="n">${fmt(tc)}</th></tr></table></div>
+  <div class="card tw"><h2>প্রকল্প প্রফিটেবিলিটি</h2><table><tr><th>প্রকল্প</th><th class="n">রেভিনিউ</th><th class="n">খরচ</th><th class="n">লাভ</th><th class="n">ইনভেন্টরি (WIP+জমি)</th><th class="n">বাজেট</th></tr>${pp||'<tr><td class="mu">—</td></tr>'}</table></div>
+  <div class="card tw"><h2>ভ্যাট রিটার্ন সামারি</h2><table><tr><th>গ্রাহক</th><th class="n">বর্গফুট</th><th class="n">ডিড ভ্যালু</th><th class="n">হার</th><th class="n">ভ্যাট</th></tr>${vt||'<tr><td class="mu">কোনো হস্তান্তর নেই</td></tr>'}<tr><th colspan="4">মোট ভ্যাট প্রদেয়</th><th class="n">${fmt(-bal('vat'))}</th></tr></table></div>
+  <div class="card tw"><h2>শেয়ারহোল্ডার রেজিস্ট্রি</h2><table><tr><th>গ্রাহক</th><th class="n">শেয়ার</th><th class="n">মালিকানা</th><th>অবস্থা</th></tr>${sh||'<tr><td class="mu">—</td></tr>'}</table></div>`;
+}
+/* ---- Settings ---- */
+function saveVat(){S.vat={low:num('v1'),high:num('v2'),limit:num('v3')};render()}
+function exportJ(){const a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(S));a.download='swapnokuthir-backup.json';a.click()}
+function importJ(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{S=Object.assign(S,JSON.parse(r.result));render()}catch(x){alert('ফাইল পড়া যায়নি')}};r.readAsText(f)}
+function reset(){if(confirm('সব ডেটা মুছে যাবে। নিশ্চিত?')){S={projects:[],units:[],customers:[],bookings:[],ledger:[],vat:{low:2,high:4.5,limit:1600},seq:1};render()}}
+function set(){
+  return `<div class="card"><h2>ভ্যাট হার</h2><div class="row"><div><label>ছোট ইউনিট (%)</label><input id="v1" type="number" step="0.1" value="${S.vat.low}"></div><div><label>বড় ইউনিট (%)</label><input id="v2" type="number" step="0.1" value="${S.vat.high}"></div><div><label>সীমা (বর্গফুট)</label><input id="v3" type="number" value="${S.vat.limit}"></div><button class="btn" onclick="saveVat()">সংরক্ষণ</button></div>
+  <div class="note">এই হারগুলো ডিফল্ট মাত্র। ব্যবহারের আগে NBR-এর বর্তমান নিয়ম মিলিয়ে নিন।</div></div>
+  <div class="card"><h2>ব্যাকআপ</h2><div class="row"><button class="btn" onclick="exportJ()">ব্যাকআপ ডাউনলোড</button><div><label>ব্যাকআপ লোড</label><input type="file" accept=".json" onchange="importJ(event)"></div><button class="btn g" onclick="reset()">সব মুছুন</button></div></div>`;
+}
+render();
+</script>
+</body>
+</html>
